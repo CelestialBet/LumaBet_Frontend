@@ -9,10 +9,11 @@ import {
   Dispatch,
 } from "react";
 import {
-  getAddress,
+  getPublicKey,
   isConnected,
-  getNetwork,
+  getNetworkDetails,
   signTransaction,
+  requestAccess,
 } from "@stellar/freighter-api";
 import { getBalance, freighterNetworkToType } from "../lib/stellar-client/index.js";
 import { WalletState, NetworkType } from "../types/index.js";
@@ -76,13 +77,13 @@ const WalletContext = createContext<WalletContextValue | null>(null);
 export function WalletProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(walletReducer, initialState);
 
-  // Re-connect if Freighter was previously connected
+  // Re-connect if Freighter was previously connected (no popup needed)
   useEffect(() => {
     void (async () => {
       try {
         const connected = await isConnected();
-        if (connected.isConnected) {
-          await connectWallet(dispatch);
+        if (connected) {
+          await connectWallet(dispatch, false);
         }
       } catch {
         // Freighter not installed — silently ignore
@@ -91,7 +92,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const connect = useCallback(async () => {
-    await connectWallet(dispatch);
+    await connectWallet(dispatch, true);
   }, []);
 
   const disconnect = useCallback(() => {
@@ -111,14 +112,14 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   const signTx = useCallback(
     async (xdr: string): Promise<string> => {
       if (!state.publicKey) throw new Error("Wallet not connected");
-      const result = await signTransaction(xdr, {
+      // freighter-api v2: signTransaction returns the signed XDR string directly
+      const signedXdr = await signTransaction(xdr, {
         networkPassphrase:
           state.network === NetworkType.MAINNET
             ? "Public Global Stellar Network ; September 2015"
             : "Test SDF Network ; September 2015",
       });
-      if ("error" in result) throw new Error(result.error);
-      return result.signedTxXdr;
+      return signedXdr;
     },
     [state.publicKey, state.network]
   );
@@ -132,21 +133,23 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   );
 }
 
-async function connectWallet(dispatch: Dispatch<WalletAction>) {
+// requestAccess=true opens the Freighter popup; false silently reads existing permission
+async function connectWallet(dispatch: Dispatch<WalletAction>, requestPermission: boolean) {
   dispatch({ type: "SET_LOADING", payload: true });
   try {
-    const addressResult = await getAddress();
-    if ("error" in addressResult || !addressResult.address) {
-      throw new Error("Could not get address from Freighter");
+    if (requestPermission) {
+      await requestAccess();
     }
 
-    const networkResult = await getNetwork();
-    if ("error" in networkResult) throw new Error("Could not get network");
+    // freighter-api v2: getPublicKey() returns a string directly
+    const publicKey = await getPublicKey();
+    if (!publicKey) throw new Error("Could not get address from Freighter");
 
-    const publicKey = addressResult.address;
+    // freighter-api v2: getNetworkDetails() returns the full network object
+    const details = await getNetworkDetails();
     const network = freighterNetworkToType({
-      network: networkResult.network,
-      networkPassphrase: networkResult.networkPassphrase,
+      network: details.network,
+      networkPassphrase: details.networkPassphrase,
     });
 
     const { xlmBalance } = await getBalance(publicKey, network);
