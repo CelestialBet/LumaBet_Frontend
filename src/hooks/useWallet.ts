@@ -6,6 +6,7 @@ import {
   useReducer,
   ReactNode,
   createElement,
+  Dispatch,
 } from "react";
 import {
   getAddress,
@@ -131,7 +132,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   );
 }
 
-async function connectWallet(dispatch: React.Dispatch<WalletAction>) {
+async function connectWallet(dispatch: Dispatch<WalletAction>) {
   dispatch({ type: "SET_LOADING", payload: true });
   try {
     const addressResult = await getAddress();

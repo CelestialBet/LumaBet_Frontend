@@ -15,7 +15,7 @@ interface RollResult {
 }
 
 export default function DiceGame() {
-  const { isConnected, publicKey, connect, refreshBalance } = useWallet();
+  const { isConnected, publicKey, connect, refreshBalance, signTx } = useWallet();
   const [prediction, setPrediction] = useState<number | null>(null);
   const [betAmountXlm, setBetAmountXlm] = useState("1");
   const [phase, setPhase] = useState<GamePhase>("idle");
@@ -50,11 +50,8 @@ export default function DiceGame() {
 
       const { xdr: unsignedXdr } = await prepRes.json() as { xdr: string };
 
-      // 2. Ask Freighter to sign
-      // (signTx from useWallet wraps freighter-api)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { signTx } = (await import("../hooks/useWallet.js")) as any;
-      const signedXdr: string = await signTx(unsignedXdr);
+      // 2. Ask Freighter to sign via the wallet context
+      const signedXdr = await signTx(unsignedXdr);
 
       setPhase("submitting");
 
