@@ -3,6 +3,8 @@ import { WalletProvider } from "./hooks/useWallet.js";
 import Layout from "./components/Layout.js";
 import Home from "./pages/Home.js";
 import DiceGame from "./pages/Dice.js";
+import CoinFlip from "./pages/CoinFlip.js";
+import Game from "./pages/Game.js";
 import WalletPage from "./pages/Wallet.js";
 import History from "./pages/History.js";
 
@@ -13,6 +15,8 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/game/dice" element={<DiceGame />} />
+          <Route path="/game/coinflip" element={<CoinFlip />} />
+          <Route path="/game" element={<Game />} />
           <Route path="/wallet" element={<WalletPage />} />
           <Route path="/history" element={<History />} />
           <Route

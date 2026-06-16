@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useWallet } from "../hooks/useWallet.js";
+import BetFeed from "../components/BetFeed.js";
 
 const GAMES = [
   {
@@ -11,13 +12,12 @@ const GAMES = [
     color: "from-luma-700 to-luma-900",
   },
   {
-    to: "#",
+    to: "/game/coinflip",
     emoji: "🪙",
     title: "Coin Flip",
-    description: "50/50 chance. Win 2x your bet.",
-    badge: "Soon",
-    color: "from-gray-800 to-gray-900",
-    disabled: true,
+    description: "50/50 chance. Win 2× your bet. Provably fair.",
+    badge: "Live",
+    color: "from-yellow-900 to-gray-900",
   },
   {
     to: "#",
@@ -106,6 +106,9 @@ export default function Home() {
           ))}
         </div>
       </section>
+
+      {/* Live bet feed */}
+      <BetFeed />
 
       {/* How it works */}
       <section className="card space-y-6">

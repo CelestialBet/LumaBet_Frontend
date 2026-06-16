@@ -27,5 +27,8 @@ module.exports = {
     "@typescript-eslint/no-explicit-any": "warn",
     "react/react-in-jsx-scope": "off",
     "react/prop-types": "off",
+    // Prevent accidental secret leakage through console.log in production.
+    // Use structured logging or strip logs at build time instead.
+    "no-console": process.env["NODE_ENV"] === "production" ? "error" : "warn",
   },
 };
